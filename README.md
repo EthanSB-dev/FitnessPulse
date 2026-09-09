@@ -20,7 +20,21 @@ AWS · S3 · Databricks · PySpark · Delta Lake · dbt Core (dbt-databricks) ·
 pytest · Terraform · GitHub Actions · Streamlit / Databricks SQL
 
 ## How to Run
-_TODO — will be filled in as the pipeline is built (Milestones 3–7)._
+
+### Synthetic Data Generator
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m src.generators.generate
+```
+Generates ~400K+ events across 7 domains (users, devices, workouts, heart rate,
+daily activity, sleep) into `data/raw/`, partitioned by domain and date as
+JSON Lines files. Fully reproducible via `--seed` (default 42).
+
+Optional flags:
+```bash
+python -m src.generators.generate --users 50 --days 30 --seed 7
+```
 
 ## Project Structure
 ```
