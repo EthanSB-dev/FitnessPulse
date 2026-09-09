@@ -9,11 +9,11 @@ are defined relative to.
 """
 
 import random
-import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import date, timedelta
 
 from src.generators.config import GeneratorConfig
+from src.generators.common import seeded_uuid
 
 GOAL_TYPES = ["endurance", "weight_loss", "general_fitness", "strength"]
 DEVICE_TYPES = ["watch", "chest_strap", "ring"]
@@ -51,8 +51,6 @@ def generate_users(config: GeneratorConfig, rng: random.Random) -> list[User]:
     users = []
     for i in range(config.num_users):
         sex = rng.choice(["female", "male"])
-        # Rough, plausible adult height/weight ranges by sex - not clinically
-        # precise, just enough realism for downstream metric calculations.
         height_cm = round(rng.uniform(155, 180), 1) if sex == "female" else round(rng.uniform(165, 195), 1)
         weight_kg = round(rng.uniform(50, 80), 1) if sex == "female" else round(rng.uniform(60, 100), 1)
 
@@ -64,7 +62,7 @@ def generate_users(config: GeneratorConfig, rng: random.Random) -> list[User]:
 
         users.append(
             User(
-                user_id=str(uuid.uuid4()),
+                user_id=seeded_uuid(rng),
                 display_name=f"user_{i:04d}",
                 date_of_birth=dob,
                 sex=sex,
@@ -88,7 +86,7 @@ def generate_devices(users: list[User], config: GeneratorConfig, rng: random.Ran
             manufacturer, model = rng.choice(DEVICE_MANUFACTURERS[device_type])
             devices.append(
                 Device(
-                    device_id=str(uuid.uuid4()),
+                    device_id=seeded_uuid(rng),
                     user_id=user.user_id,
                     device_type=device_type,
                     manufacturer=manufacturer,

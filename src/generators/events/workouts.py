@@ -6,15 +6,13 @@ Each simulated workout produces 2-4 related events sharing a workout_id,
 modeling a real device's start/pause/resume/complete session lifecycle.
 """
 
-import uuid
 from datetime import datetime, timedelta
 
 from src.generators.config import GeneratorConfig
-from src.generators.common import make_envelope
+from src.generators.common import make_envelope, seeded_uuid
 from src.generators.entities import User, Device
 
 WORKOUT_TYPES = ["run", "ride", "strength", "swim", "walk"]
-# Typical duration ranges (minutes) by workout type - used to keep durations plausible.
 DURATION_RANGES_MIN = {
     "run": (20, 60),
     "ride": (30, 90),
@@ -55,24 +53,23 @@ def generate_workout_events(
         for _ in range(num_workouts):
             day_offset = rng.randint(0, total_days)
             workout_day = config.start_date + timedelta(days=day_offset)
-            start_hour = rng.randint(5, 21)  # workouts happen 5am-9pm
+            start_hour = rng.randint(5, 21)
             start_time = datetime(
                 workout_day.year, workout_day.month, workout_day.day,
                 start_hour, rng.randint(0, 59), rng.randint(0, 59),
             )
 
-            workout_id = str(uuid.uuid4())
+            workout_id = seeded_uuid(rng)
             workout_type = rng.choice(WORKOUT_TYPES)
             device_id = _pick_device_for_user(user.user_id, devices_by_user, rng)
-            schema_version = config.schema_version_before  # corruption.py handles evolution cutover
+            schema_version = config.schema_version_before
 
             low, high = DURATION_RANGES_MIN[workout_type]
             duration_min = rng.randint(low, high)
 
-            # ~20% of workouts include a pause/resume cycle
             has_pause = rng.random() < 0.20
             events.append({
-                **make_envelope("workout_started", start_time, user.user_id, device_id, schema_version),
+                **make_envelope("workout_started", start_time, user.user_id, device_id, schema_version, rng),
                 "workout_id": workout_id,
                 "workout_type": workout_type,
             })
@@ -87,12 +84,12 @@ def generate_workout_events(
                 resume_time = pause_time + timedelta(minutes=pause_duration_min)
 
                 events.append({
-                    **make_envelope("workout_paused", pause_time, user.user_id, device_id, schema_version),
+                    **make_envelope("workout_paused", pause_time, user.user_id, device_id, schema_version, rng),
                     "workout_id": workout_id,
                     "workout_type": workout_type,
                 })
                 events.append({
-                    **make_envelope("workout_resumed", resume_time, user.user_id, device_id, schema_version),
+                    **make_envelope("workout_resumed", resume_time, user.user_id, device_id, schema_version, rng),
                     "workout_id": workout_id,
                     "workout_type": workout_type,
                 })
@@ -102,7 +99,7 @@ def generate_workout_events(
 
             completed_time = current_time + timedelta(minutes=(remaining_active_min if not has_pause else duration_min - pause_after_min))
             events.append({
-                **make_envelope("workout_completed", completed_time, user.user_id, device_id, schema_version),
+                **make_envelope("workout_completed", completed_time, user.user_id, device_id, schema_version, rng),
                 "workout_id": workout_id,
                 "workout_type": workout_type,
                 "duration_seconds": duration_min * 60,

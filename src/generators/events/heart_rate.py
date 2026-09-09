@@ -10,7 +10,7 @@ event, which is why heart_rate generation always runs after workouts.
 from datetime import datetime, timedelta
 
 from src.generators.config import GeneratorConfig
-from src.generators.common import make_envelope, iso_timestamp
+from src.generators.common import make_envelope
 
 
 def _parse_iso(ts: str) -> datetime:
@@ -22,12 +22,6 @@ def generate_heart_rate_events(
     config: GeneratorConfig,
     rng,
 ) -> list[dict]:
-    """
-    Generate HR samples for each completed workout, based on workout_started
-    and workout_completed pairs already produced by generate_workout_events.
-    """
-    # Group workout_started/completed pairs by workout_id so we know each
-    # workout's real time span (including any pause/resume gap).
     starts: dict[str, dict] = {}
     completions: dict[str, dict] = {}
     for event in workout_events:
@@ -41,7 +35,7 @@ def generate_heart_rate_events(
     for workout_id, start_event in starts.items():
         completed_event = completions.get(workout_id)
         if completed_event is None:
-            continue  # shouldn't happen, but skip defensively rather than crash
+            continue
 
         start_time = _parse_iso(start_event["event_timestamp"])
         end_time = _parse_iso(completed_event["event_timestamp"])
@@ -51,9 +45,6 @@ def generate_heart_rate_events(
         device_id = start_event["device_id"]
         schema_version = start_event["schema_version"]
 
-        # Resting-ish starting BPM, rising through the workout, per a simple
-        # linear ramp with noise - enough realism to make Gold aggregates
-        # (avg/max HR) look plausible without modeling real physiology.
         base_bpm = rng.randint(60, 80)
         peak_bpm = rng.randint(140, 180)
 
@@ -61,14 +52,14 @@ def generate_heart_rate_events(
         num_samples = max(1, int(span_minutes * samples_per_minute))
 
         for i in range(num_samples):
-            progress = i / max(1, num_samples - 1)  # 0.0 -> 1.0 across the workout
+            progress = i / max(1, num_samples - 1)
             ramped_bpm = base_bpm + (peak_bpm - base_bpm) * progress
             bpm = round(ramped_bpm + rng.uniform(-5, 5))
 
             sample_time = start_time + timedelta(minutes=i / samples_per_minute)
 
             events.append({
-                **make_envelope("heart_rate_sample", sample_time, user_id, device_id, schema_version),
+                **make_envelope("heart_rate_sample", sample_time, user_id, device_id, schema_version, rng),
                 "workout_id": workout_id,
                 "bpm": bpm,
             })
