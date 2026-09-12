@@ -20,7 +20,7 @@ import uuid
 from datetime import datetime, timezone
 
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import input_file_name, current_timestamp, lit, regexp_extract
+from pyspark.sql.functions import current_timestamp, lit, regexp_extract
 from delta.tables import DeltaTable
 
 from src.ingestion.config import IngestionConfig
@@ -43,7 +43,7 @@ def add_ingestion_metadata(df: DataFrame, run_id: str, source_version: str) -> D
     return (
         df
         .withColumn("_ingestion_timestamp", current_timestamp())
-        .withColumn("_source_file", input_file_name())
+        .withColumn("_source_file", df["_metadata.file_path"])
         .withColumn(
             "source_file",
             regexp_extract("_source_file", r"([^/]+\.json)$", 1),
