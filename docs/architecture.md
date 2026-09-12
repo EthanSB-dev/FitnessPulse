@@ -12,7 +12,8 @@ recovery trends, engagement, and pipeline health, with an optional Kafka + Struc
 Streaming extension layered on after the batch MVP is solid.
 
 ## MVP Scope
-- Python synthetic data generator (7 domains, with intentional dirty data)
+- Python synthetic data generator (7 domains, with intentional dirty data) — complete
+- S3 raw zone + Databricks/PySpark Bronze ingestion with lineage metadata
 - S3 raw zone + Databricks/PySpark Bronze ingestion with lineage metadata
 - Silver: schema standardization, dedup, quarantine, validation rules
 - dbt Core (dbt-databricks) Gold models: `dim_user`, `dim_device`, `dim_date`,

@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.Python
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*credentials*
+secrets/
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+
+# Databricks
+.databrickscfg
+.databricks/
+
+# Local data & logs
+data/
+*.log
+logs/
+
+# dbt
+dbt/fitnesspulse/target/
+dbt/fitnesspulse/dbt_packages/
+dbt/fitnesspulse/logs/
+
+# macOS / VS Code
+.DS_Store
+.vscode/
+
+# Installers accidentally downloaded into repo root
+*.pkg
