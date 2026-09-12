@@ -13,8 +13,7 @@ Streaming extension layered on after the batch MVP is solid.
 
 ## MVP Scope
 - Python synthetic data generator (7 domains, with intentional dirty data) — complete
-- S3 raw zone + Databricks/PySpark Bronze ingestion with lineage metadata
-- S3 raw zone + Databricks/PySpark Bronze ingestion with lineage metadata
+- S3 raw zone + Databricks/PySpark Bronze ingestion with lineage metadata — complete
 - Silver: schema standardization, dedup, quarantine, validation rules
 - dbt Core (dbt-databricks) Gold models: `dim_user`, `dim_device`, `dim_date`,
   `fact_workout`, `fact_daily_health`, `fact_training_load`, `fact_pipeline_quality`
